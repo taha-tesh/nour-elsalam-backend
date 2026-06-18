@@ -1,0 +1,168 @@
+// Prisma schema for بيت العدد (Bayt Al-Adad) hardware store API
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+/// Order lifecycle — maps to Arabic UI labels in the tracking timeline
+enum OrderStatus {
+  RECEIVED          // تم استلام الطلب
+  PROCESSING        // قيد التجهيز
+  OUT_FOR_DELIVERY  // قيد التوصيل
+  DELIVERED         // تم التسليم
+}
+
+enum PaymentMethod {
+  COD // الدفع عند الاستلام فقط
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+// No self-registration — accounts are created by ADMIN only
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  role      Role     @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+  feedbacks OrderFeedback[]
+
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+// ─── Catalog ─────────────────────────────────────────────────────────────────
+
+model Category {
+  id        String   @id @default(cuid())
+  nameAr    String
+  slug      String   @unique
+  icon      String?  // icon key for the mobile app (e.g. "bolt", "wrench")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  titleAr       String
+  descriptionAr String   @db.Text
+  price         Decimal  @db.Decimal(10, 2)
+  stock         Int      @default(0)
+  imageUrl      String?
+  brand         String?  // e.g. "بوش Professional"
+  tags          String[] @default([])
+  /// Technical specs as key-value pairs, e.g. { "البطارية": "ليثيوم آيون 4.0 أمبير" }
+  specs         Json?
+  isFeatured    Boolean  @default(false)
+  categoryId    String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category   Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  orderItems OrderItem[]
+
+  @@index([categoryId])
+  @@index([isFeatured])
+  @@index([stock])
+  @@map("products")
+}
+
+// ─── Orders ──────────────────────────────────────────────────────────────────
+
+model Order {
+  id               String        @id @default(cuid())
+  orderNumber      String        @unique // e.g. ORD-12345
+  userId           String
+  status           OrderStatus   @default(RECEIVED)
+  paymentMethod    PaymentMethod @default(COD)
+  totalAmount      Decimal       @db.Decimal(10, 2)
+  shippingAddress  String
+  shippingCity     String
+  shippingCompany  String?       // e.g. "أرامكس - سريع"
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items      OrderItem[]
+  statusLogs OrderStatusLog[]
+  feedback   OrderFeedback?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  productId    String
+  quantity     Int
+  unitPrice    Decimal @db.Decimal(10, 2)
+  /// Snapshot of product title at time of order (Arabic)
+  productTitle String
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+/// Audit trail for order status changes (powers the tracking timeline UI)
+model OrderStatusLog {
+  id        String      @id @default(cuid())
+  orderId   String
+  status    OrderStatus
+  note      String?
+  createdAt DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_status_logs")
+}
+
+// ─── Feedback ────────────────────────────────────────────────────────────────
+// Users may submit feedback ONLY after order status is DELIVERED
+
+model OrderFeedback {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  userId    String
+  rating    Int?     // 1–5 stars (optional, from post-delivery UI)
+  comment   String   @db.Text
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@map("order_feedbacks")
+}
