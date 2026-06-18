@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma';
 import { AppError } from '../utils/errors';
 import { generateOrderNumber } from '../utils/orderNumber';
 import { serializeOrder } from '../utils/serialize';
+import { notifyAdminsNewOrder } from '../utils/pushNotifications';
 import { ORDER_STATUS_LABELS } from '../constants/orders';
 import {
   CreateOrderInput,
@@ -109,6 +110,10 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
       });
     });
 
+    void notifyAdminsNewOrder(order).catch((err) => {
+      console.error('Failed to notify admins:', err);
+    });
+
     res.status(201).json({
       message: 'تم تأكيد الطلب بنجاح',
       order: formatOrderResponse(order),
@@ -120,7 +125,7 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
 
 export async function listOrders(req: Request, res: Response, next: NextFunction) {
   try {
-    const { page, limit, status, search } = req.query as unknown as ListOrdersQuery;
+    const { page, limit, status, search } = req.validatedQuery as unknown as ListOrdersQuery;
     const skip = (page - 1) * limit;
     const isAdmin = req.user!.role === Role.ADMIN;
 

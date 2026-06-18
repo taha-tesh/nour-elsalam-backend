@@ -9,7 +9,9 @@ const categoryInclude = {
 
 export async function listCategories(req: Request, res: Response, next: NextFunction) {
   try {
-    const includeProducts = Boolean(req.query.includeProducts);
+    const includeProducts = Boolean(
+      (req.validatedQuery as { includeProducts?: boolean } | undefined)?.includeProducts,
+    );
 
     const categories = await prisma.category.findMany({
       orderBy: { sortOrder: 'asc' },

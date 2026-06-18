@@ -46,7 +46,8 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 
 export async function listUsers(req: Request, res: Response, next: NextFunction) {
   try {
-    const { page, limit, search, role, isActive } = req.query as unknown as ListUsersQuery;
+    const { page, limit, search, role, isActive } =
+      req.validatedQuery as unknown as ListUsersQuery;
     const skip = (page - 1) * limit;
 
     const where: Prisma.UserWhereInput = {};

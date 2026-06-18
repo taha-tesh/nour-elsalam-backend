@@ -13,7 +13,14 @@ export function validate(schema: ZodTypeAny, target: ValidationTarget = 'body') 
       return next(new AppError(400, message, 'VALIDATION_ERROR'));
     }
 
-    req[target] = result.data;
+    // Express 5: req.query/params are read-only — store parsed values separately
+    if (target === 'body') {
+      req.body = result.data;
+    } else if (target === 'query') {
+      req.validatedQuery = result.data as Record<string, unknown>;
+    } else {
+      req.validatedParams = result.data as Record<string, unknown>;
+    }
     next();
   };
 }

@@ -4,7 +4,7 @@ import { signToken } from '../lib/jwt';
 import { comparePassword } from '../utils/password';
 import { AppError } from '../utils/errors';
 import { userSelect } from '../types/auth';
-import { LoginInput } from '../schemas/auth.schema';
+import { LoginInput, PushTokenInput } from '../schemas/auth.schema';
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
@@ -51,6 +51,21 @@ export async function getMe(req: Request, res: Response, next: NextFunction) {
     }
 
     res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function registerPushToken(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { expoPushToken } = req.body as PushTokenInput;
+
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { expoPushToken },
+    });
+
+    res.json({ message: 'تم تسجيل رمز الإشعارات بنجاح' });
   } catch (err) {
     next(err);
   }

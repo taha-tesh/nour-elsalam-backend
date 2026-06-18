@@ -38,9 +38,11 @@ model User {
   email     String   @unique
   password  String
   phone     String?
-  role      Role     @default(USER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  role          Role     @default(USER)
+  isActive      Boolean  @default(true)
+  /// Expo push token for admin order alerts
+  expoPushToken String?
+  createdAt     DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   orders    Order[]

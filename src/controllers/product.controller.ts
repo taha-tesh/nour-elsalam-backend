@@ -30,7 +30,7 @@ async function findProductByIdOrCode(idOrCode: string) {
 export async function listProducts(req: Request, res: Response, next: NextFunction) {
   try {
     const { page, limit, search, categoryId, isFeatured, inStock } =
-      req.query as unknown as ListProductsQuery;
+      req.validatedQuery as unknown as ListProductsQuery;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = {};
