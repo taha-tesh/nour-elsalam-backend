@@ -116,25 +116,19 @@ async function seedProducts(categoryIds: Record<string, string>) {
     },
   ];
 
-  for (const p of products) {
+  for (let i = 0; i < products.length; i++) {
+    const p = products[i];
     const { categorySlug, ...data } = p;
     const categoryId = categoryIds[categorySlug];
     if (!categoryId) continue;
 
-    const existing = await prisma.product.findFirst({
-      where: { titleAr: data.titleAr, categoryId },
-    });
+    const productCode = `PRD-${String(i + 1).padStart(3, '0')}`;
 
-    if (existing) {
-      await prisma.product.update({
-        where: { id: existing.id },
-        data: { ...data, categoryId },
-      });
-    } else {
-      await prisma.product.create({
-        data: { ...data, categoryId },
-      });
-    }
+    await prisma.product.upsert({
+      where: { productCode },
+      update: { ...data, categoryId },
+      create: { ...data, categoryId, productCode },
+    });
   }
 }
 

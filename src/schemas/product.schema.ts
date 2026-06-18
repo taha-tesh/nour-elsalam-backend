@@ -16,6 +16,10 @@ export const listProductsQuerySchema = z.object({
 });
 
 export const createProductSchema = z.object({
+  productCode: z
+    .string()
+    .min(2, 'كود المنتج مطلوب')
+    .regex(/^[A-Za-z0-9_-]+$/, 'كود المنتج: أحرف إنجليزية وأرقام و - _ فقط'),
   titleAr: z.string().min(2, 'عنوان المنتج مطلوب'),
   descriptionAr: z.string().min(10, 'وصف المنتج مطلوب'),
   price: z.coerce.number().positive('السعر يجب أن يكون أكبر من صفر'),
@@ -33,6 +37,24 @@ export const updateProductSchema = createProductSchema.partial().refine(
   { message: 'يجب توفير حقل واحد على الأقل للتحديث' },
 );
 
+export const importExcelSchema = z.object({
+  fileBase64: z.string().min(1, 'ملف Excel مطلوب'),
+});
+
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+
+/** Expected Excel column headers (row 1) */
+export const EXCEL_COLUMNS = [
+  'productCode',
+  'titleAr',
+  'descriptionAr',
+  'price',
+  'stock',
+  'categorySlug',
+  'brand',
+  'imageUrl',
+  'isFeatured',
+  'tags',
+] as const;
