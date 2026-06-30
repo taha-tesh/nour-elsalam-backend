@@ -7,6 +7,7 @@ import {
   deleteProduct,
   downloadImportTemplate,
   importProductsExcel,
+  importProductsJson,
 } from '../controllers/product.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireAdmin } from '../middleware/role.middleware';
@@ -16,6 +17,7 @@ import {
   createProductSchema,
   updateProductSchema,
   importExcelSchema,
+  importProductsJsonSchema,
 } from '../schemas/product.schema';
 
 const router = Router();
@@ -30,6 +32,14 @@ router.post(
   requireAdmin,
   validate(importExcelSchema),
   importProductsExcel,
+);
+
+router.post(
+  '/import/json',
+  authenticate,
+  requireAdmin,
+  validate(importProductsJsonSchema),
+  importProductsJson,
 );
 
 router.get('/:id', getProductById);

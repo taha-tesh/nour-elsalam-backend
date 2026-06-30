@@ -12,6 +12,7 @@ import {
   ListProductsQuery,
   CreateProductInput,
   UpdateProductInput,
+  ImportProductsJsonInput,
 } from '../schemas/product.schema';
 
 const productInclude = {
@@ -213,6 +214,89 @@ export async function importProductsExcel(req: Request, res: Response, next: Nex
 
     res.json({
       message: `تم استيراد ${result.created} منتج جديد وتحديث ${result.updated}`,
+      ...result,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function importProductsJson(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { products } = req.body as ImportProductsJsonInput;
+
+    const categories = await prisma.category.findMany();
+    const slugMap = new Map(categories.map((category) => [category.slug, category.id]));
+
+    const result = {
+      created: 0,
+      updated: 0,
+      errors: [] as { index: number; productCode: string; message: string }[],
+    };
+
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      const index = i + 1;
+
+      try {
+        const categoryId = product.categoryId
+          ? product.categoryId
+          : product.categorySlug
+          ? slugMap.get(product.categorySlug)
+          : undefined;
+
+        if (!categoryId) {
+          throw new AppError(
+            400,
+            `القسم "${product.categorySlug ?? product.categoryId ?? ''}" غير موجود`,
+            'CATEGORY_NOT_FOUND',
+          );
+        }
+
+        const productData = {
+          productCode: product.productCode.toUpperCase(),
+          titleAr: product.titleAr,
+          descriptionAr: product.descriptionAr,
+          price: product.price,
+          stock: product.stock,
+          categoryId,
+          imageUrl: product.imageUrl || null,
+          brand: product.brand || null,
+          tags: Array.isArray(product.tags)
+            ? product.tags.map((tag) => tag.trim()).filter(Boolean)
+            : String(product.tags)
+                .split(',')
+                .map((tag) => tag.trim())
+                .filter(Boolean),
+          specs: product.specs ?? undefined,
+          isFeatured: product.isFeatured,
+        };
+
+        const existing = await prisma.product.findUnique({
+          where: { productCode: productData.productCode },
+        });
+
+        if (existing) {
+          await prisma.product.update({
+            where: { productCode: productData.productCode },
+            data: productData,
+          });
+          result.updated++;
+        } else {
+          await prisma.product.create({ data: productData });
+          result.created++;
+        }
+      } catch (err) {
+        result.errors.push({
+          index,
+          productCode: product.productCode,
+          message: err instanceof Error ? err.message : 'خطأ غير معروف',
+        });
+      }
+    }
+
+    res.json({
+      message: `تم استيراد ${result.created} منتجًا جديدًا وتحديث ${result.updated}`,
       ...result,
     });
   } catch (err) {
