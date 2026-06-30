@@ -227,6 +227,24 @@ export async function importProductsJson(req: Request, res: Response, next: Next
 
     const categories = await prisma.category.findMany();
     const slugMap = new Map(categories.map((category) => [category.slug, category.id]));
+    const categoryIdSet = new Set(categories.map((category) => category.id));
+
+    const defaultCategorySlug = 'uncategorized';
+    let defaultCategoryId = slugMap.get(defaultCategorySlug);
+    if (!defaultCategoryId) {
+      const defaultCategory = await prisma.category.upsert({
+        where: { slug: defaultCategorySlug },
+        update: {},
+        create: {
+          nameAr: 'بدون قسم',
+          slug: defaultCategorySlug,
+          sortOrder: 9999,
+        },
+      });
+      defaultCategoryId = defaultCategory.id;
+      slugMap.set(defaultCategorySlug, defaultCategoryId);
+      categoryIdSet.add(defaultCategoryId);
+    }
 
     const result = {
       created: 0,
@@ -239,19 +257,11 @@ export async function importProductsJson(req: Request, res: Response, next: Next
       const index = i + 1;
 
       try {
-        const categoryId = product.categoryId
+        const categoryId = product.categoryId && categoryIdSet.has(product.categoryId)
           ? product.categoryId
-          : product.categorySlug
+          : product.categorySlug && slugMap.has(product.categorySlug)
           ? slugMap.get(product.categorySlug)
-          : undefined;
-
-        if (!categoryId) {
-          throw new AppError(
-            400,
-            `القسم "${product.categorySlug ?? product.categoryId ?? ''}" غير موجود`,
-            'CATEGORY_NOT_FOUND',
-          );
-        }
+          : defaultCategoryId;
 
         const productData = {
           productCode: product.productCode.toUpperCase(),

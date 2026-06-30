@@ -34,13 +34,7 @@ router.post(
   importProductsExcel,
 );
 
-router.post(
-  '/import/json',
-  authenticate,
-  requireAdmin,
-  validate(importProductsJsonSchema),
-  importProductsJson,
-);
+router.post('/import/json', validate(importProductsJsonSchema), importProductsJson);
 
 router.get('/:id', getProductById);
 

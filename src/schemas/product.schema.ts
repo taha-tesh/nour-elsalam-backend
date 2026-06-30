@@ -41,32 +41,23 @@ export const createProductSchema = z.object({
   categoryId: z.string().min(1, 'القسم مطلوب'),
 });
 
-export const importProductJsonSchema = z
-  .object({
-    productCode: z
-      .string()
-      .min(2, 'كود المنتج مطلوب')
-      .regex(/^[A-Za-z0-9_-]+$/, 'كود المنتج: أحرف إنجليزية وأرقام و - _ فقط'),
-    titleAr: z.string().min(2, 'عنوان المنتج مطلوب'),
-    descriptionAr: z.string().min(10, 'وصف المنتج مطلوب'),
-    price: z.coerce.number().positive('السعر يجب أن يكون أكبر من صفر'),
-    stock: z.coerce.number().int().min(0).default(0),
-    imageUrl: z.string().url().optional().or(z.literal('')),
-    brand: z.string().optional(),
-    tags: z.union([z.array(z.string()), z.string()]).transform(parseTags).default([]),
-    specs: z.record(z.string()).optional(),
-    isFeatured: z.boolean().default(false),
-    categoryId: z.string().optional(),
-    categorySlug: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.categoryId && !data.categorySlug) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'يجب توفير categoryId أو categorySlug',
-      });
-    }
-  });
+export const importProductJsonSchema = z.object({
+  productCode: z
+    .string()
+    .min(2, 'كود المنتج مطلوب')
+    .regex(/^[A-Za-z0-9_-]+$/, 'كود المنتج: أحرف إنجليزية وأرقام و - _ فقط'),
+  titleAr: z.string().min(2, 'عنوان المنتج مطلوب'),
+  descriptionAr: z.string().min(10, 'وصف المنتج مطلوب'),
+  price: z.coerce.number().positive('السعر يجب أن يكون أكبر من صفر'),
+  stock: z.coerce.number().int().min(0).default(0),
+  imageUrl: z.string().url().optional().or(z.literal('')),
+  brand: z.string().optional(),
+  tags: z.union([z.array(z.string()), z.string()]).transform(parseTags).default([]),
+  specs: z.record(z.string()).optional(),
+  isFeatured: z.boolean().default(false),
+  categoryId: z.string().optional(),
+  categorySlug: z.string().optional(),
+});
 
 export const importProductsJsonSchema = z.object({
   products: z.array(importProductJsonSchema).min(1, 'منتج واحد على الأقل مطلوب'),
