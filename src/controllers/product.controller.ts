@@ -266,7 +266,7 @@ export async function importProductsJson(req: Request, res: Response, next: Next
         const productData = {
           productCode: product.productCode.toUpperCase(),
           titleAr: product.titleAr,
-          descriptionAr: product.descriptionAr,
+          descriptionAr: product.descriptionAr || '',
           price: product.price,
           stock: product.stock,
           categoryId,

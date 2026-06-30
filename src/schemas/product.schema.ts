@@ -47,9 +47,9 @@ export const importProductJsonSchema = z.object({
     .min(2, 'كود المنتج مطلوب')
     .regex(/^[A-Za-z0-9_-]+$/, 'كود المنتج: أحرف إنجليزية وأرقام و - _ فقط'),
   titleAr: z.string().min(2, 'عنوان المنتج مطلوب'),
-  descriptionAr: z.string().min(10, 'وصف المنتج مطلوب'),
+  descriptionAr: z.string().optional().default(''),
   price: z.coerce.number().positive('السعر يجب أن يكون أكبر من صفر'),
-  stock: z.coerce.number().int().min(0).default(0),
+  stock: z.coerce.number().int().min(0),
   imageUrl: z.string().url().optional().or(z.literal('')),
   brand: z.string().optional(),
   tags: z.union([z.array(z.string()), z.string()]).transform(parseTags).default([]),
