@@ -92,7 +92,12 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
   try {
     const data = req.body as CreateProductInput;
 
-    const category = await prisma.category.findUnique({ where: { id: data.categoryId } });
+    const categoryId = data.categoryId || (await prisma.category.findFirst({ orderBy: { sortOrder: 'asc' } }))?.id;
+    if (!categoryId) {
+      throw new AppError(400, 'لا توجد أقسام متاحة لإضافة المنتج', 'NO_CATEGORIES');
+    }
+
+    const category = await prisma.category.findUnique({ where: { id: categoryId } });
     if (!category) {
       throw new AppError(404, 'القسم غير موجود', 'CATEGORY_NOT_FOUND');
     }
@@ -107,6 +112,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
     const product = await prisma.product.create({
       data: {
         ...data,
+        categoryId,
         productCode: data.productCode.toUpperCase(),
         imageUrl: data.imageUrl || null,
       },
@@ -257,11 +263,15 @@ export async function importProductsJson(req: Request, res: Response, next: Next
       const index = i + 1;
 
       try {
-        const categoryId = product.categoryId && categoryIdSet.has(product.categoryId)
+        const resolvedCategoryId = product.categoryId && categoryIdSet.has(product.categoryId)
           ? product.categoryId
           : product.categorySlug && slugMap.has(product.categorySlug)
           ? slugMap.get(product.categorySlug)
           : defaultCategoryId;
+
+        if (!resolvedCategoryId) {
+          throw new AppError(400, 'لا يمكن تحديد قسم للمنتج', 'CATEGORY_REQUIRED');
+        }
 
         const productData = {
           productCode: product.productCode.toUpperCase(),
@@ -269,7 +279,7 @@ export async function importProductsJson(req: Request, res: Response, next: Next
           descriptionAr: product.descriptionAr || '',
           price: product.price,
           stock: product.stock,
-          categoryId,
+          categoryId: resolvedCategoryId,
           imageUrl: product.imageUrl || null,
           brand: product.brand || null,
           tags: Array.isArray(product.tags)

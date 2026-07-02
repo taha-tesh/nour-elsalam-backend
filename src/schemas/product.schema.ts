@@ -27,29 +27,31 @@ const parseTags = (value: string[] | string | undefined): string[] => {
 export const createProductSchema = z.object({
   productCode: z
     .string()
+    .trim()
     .min(2, 'كود المنتج مطلوب')
     .regex(/^[A-Za-z0-9_-]+$/, 'كود المنتج: أحرف إنجليزية وأرقام و - _ فقط'),
-  titleAr: z.string().min(2, 'عنوان المنتج مطلوب'),
-  descriptionAr: z.string().min(10, 'وصف المنتج مطلوب'),
-  price: z.coerce.number().positive('السعر يجب أن يكون أكبر من صفر'),
-  stock: z.coerce.number().int().min(0).default(0),
+  titleAr: z.string().trim().min(1, 'عنوان المنتج مطلوب'),
+  descriptionAr: z.string().trim().optional().default(''),
+  price: z.coerce.number().refine((value) => Number.isFinite(value), 'السعر غير صالح'),
+  stock: z.coerce.number().int().refine((value) => Number.isFinite(value), 'المخزون غير صالح'),
   imageUrl: z.string().url().optional().or(z.literal('')),
   brand: z.string().optional(),
   tags: z.array(z.string()).default([]),
   specs: z.record(z.string()).optional(),
   isFeatured: z.boolean().default(false),
-  categoryId: z.string().min(1, 'القسم مطلوب'),
+  categoryId: z.string().optional(),
 });
 
 export const importProductJsonSchema = z.object({
   productCode: z
     .string()
+    .trim()
     .min(2, 'كود المنتج مطلوب')
     .regex(/^[A-Za-z0-9_-]+$/, 'كود المنتج: أحرف إنجليزية وأرقام و - _ فقط'),
-  titleAr: z.string().min(2, 'عنوان المنتج مطلوب'),
+  titleAr: z.string().trim().min(1, 'عنوان المنتج مطلوب'),
   descriptionAr: z.string().optional().default(''),
-  price: z.coerce.number().positive('السعر يجب أن يكون أكبر من صفر'),
-  stock: z.coerce.number().int().min(0),
+  price: z.coerce.number().refine((value) => Number.isFinite(value), 'السعر غير صالح'),
+  stock: z.coerce.number().int().refine((value) => Number.isFinite(value), 'المخزون غير صالح'),
   imageUrl: z.string().url().optional().or(z.literal('')),
   brand: z.string().optional(),
   tags: z.union([z.array(z.string()), z.string()]).transform(parseTags).default([]),

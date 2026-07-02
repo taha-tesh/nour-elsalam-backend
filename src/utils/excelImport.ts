@@ -97,11 +97,8 @@ export async function importProductsFromRows(rows: ImportRow[]): Promise<ImportR
         throw new Error('كود المنتج مطلوب');
       }
       if (!row.titleAr) throw new Error('العنوان مطلوب');
-      if (!row.descriptionAr || row.descriptionAr.length < 10) {
-        throw new Error('الوصف مطلوب (10 أحرف على الأقل)');
-      }
-      if (!row.price || row.price <= 0) throw new Error('السعر غير صالح');
-      if (row.stock < 0) throw new Error('المخزون غير صالح');
+      if (!Number.isFinite(row.price)) throw new Error('السعر غير صالح');
+      if (!Number.isFinite(row.stock)) throw new Error('المخزون غير صالح');
 
       const categoryId = slugMap.get(row.categorySlug);
       if (!categoryId) {
