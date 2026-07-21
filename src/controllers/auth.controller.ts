@@ -9,11 +9,18 @@ import { LoginInput, PushTokenInput } from '../schemas/auth.schema';
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const { email, password } = req.body as LoginInput;
+    const identifier = email.trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    // Try to find user by email first, then by name
+    let user = await prisma.user.findUnique({ where: { email: identifier } });
+    
+    if (!user) {
+      // If not found by email, search by name
+      user = await prisma.user.findFirst({ where: { name: email.trim() } });
+    }
 
     if (!user || !user.isActive) {
-      throw new AppError(401, 'البريد الإلكتروني أو كلمة المرور غير صحيحة', 'INVALID_CREDENTIALS');
+      throw new AppError(401, 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة', 'INVALID_CREDENTIALS');
     }
 
     const valid = await comparePassword(password, user.password);

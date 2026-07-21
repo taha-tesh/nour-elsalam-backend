@@ -4,7 +4,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ['error', 'warn'],
+});
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'admin@baytaladad.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'Admin@123456';
