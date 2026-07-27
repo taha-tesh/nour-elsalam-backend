@@ -28,8 +28,7 @@ export const createProductSchema = z.object({
   productCode: z
     .string()
     .trim()
-    .min(2, 'كود المنتج مطلوب')
-    .regex(/^[A-Za-z0-9_.-]+$/, 'كود المنتج: أحرف إنجليزية وأرقام و - _ . فقط'),
+    .min(2, 'كود المنتج مطلوب'),
   titleAr: z.string().trim().min(1, 'عنوان المنتج مطلوب'),
   descriptionAr: z.string().trim().optional().default(''),
   price: z.coerce.number().refine((value) => Number.isFinite(value), 'السعر غير صالح'),
@@ -46,8 +45,7 @@ export const importProductJsonSchema = z.object({
   productCode: z
     .string()
     .trim()
-    .min(2, 'Product code is required')
-    .regex(/^[A-Za-z0-9_.-]+$/, 'Product code: alphanumeric, - and _ . only'),
+    .min(2, 'Product code is required'),
   titleAr: z.string().trim().min(1, 'Product title is required'),
   descriptionAr: z.string().optional().default(''),
   price: z.coerce.number().refine((value) => Number.isFinite(value), 'السعر غير صالح'),
