@@ -59,7 +59,7 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
       if (product.stock < item.quantity) {
         throw new AppError(
           400,
-          `الكمية المطلوبة من "${product.titleAr}" غير متوفرة (المتبقي: ${product.stock})`,
+          `Requested quantity of "${product.titleAr}" is not available (remaining: ${product.stock})`,
           'INSUFFICIENT_STOCK',
         );
       }

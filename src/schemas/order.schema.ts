@@ -8,8 +8,8 @@ const orderItemSchema = z.object({
 
 export const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, 'يجب إضافة منتج واحد على الأقل'),
-  shippingAddress: z.string().min(5, 'عنوان التوصيل مطلوب'),
-  shippingCity: z.string().min(2, 'المدينة مطلوبة'),
+  shippingAddress: z.string().min(5, 'Shipping address is required'),
+  shippingCity: z.string().min(2, 'City is required'),
 });
 
 export const listOrdersQuerySchema = z.object({
@@ -27,7 +27,7 @@ export const updateOrderStatusSchema = z.object({
 
 export const createFeedbackSchema = z.object({
   rating: z.coerce.number().int().min(1).max(5).optional(),
-  comment: z.string().min(3, 'التعليق مطلوب'),
+  comment: z.string().min(3, 'Comment is required'),
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;

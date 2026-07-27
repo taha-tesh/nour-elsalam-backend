@@ -21,7 +21,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     });
 
     if (!user || !user.isActive) {
-      throw new AppError(401, 'الجلسة غير صالحة أو الحساب معطل', 'UNAUTHORIZED');
+      throw new AppError(401, 'Invalid session or account disabled', 'UNAUTHORIZED');
     }
 
     req.user = user;
@@ -30,6 +30,6 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     if (err instanceof AppError) {
       return next(err);
     }
-    next(new AppError(401, 'رمز الدخول غير صالح أو منتهي الصلاحية', 'INVALID_TOKEN'));
+    next(new AppError(401, 'Invalid or expired token', 'INVALID_TOKEN'));
   }
 }

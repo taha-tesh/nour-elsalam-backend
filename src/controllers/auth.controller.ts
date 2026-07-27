@@ -20,12 +20,12 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     }
 
     if (!user || !user.isActive) {
-      throw new AppError(401, 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة', 'INVALID_CREDENTIALS');
+      throw new AppError(401, 'Invalid username/email or password', 'INVALID_CREDENTIALS');
     }
 
     const valid = await comparePassword(password, user.password);
     if (!valid) {
-      throw new AppError(401, 'البريد الإلكتروني أو كلمة المرور غير صحيحة', 'INVALID_CREDENTIALS');
+      throw new AppError(401, 'Invalid email or password', 'INVALID_CREDENTIALS');
     }
 
     const token = signToken({

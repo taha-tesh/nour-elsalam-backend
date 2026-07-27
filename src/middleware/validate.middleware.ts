@@ -27,5 +27,5 @@ export function validate(schema: ZodTypeAny, target: ValidationTarget = 'body') 
 
 function formatZodError(error: ZodError): string {
   const first = error.errors[0];
-  return first?.message ?? 'بيانات غير صالحة';
+  return first?.message ?? 'Invalid data provided';
 }

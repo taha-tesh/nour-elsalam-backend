@@ -3,7 +3,7 @@ import { Role } from '@prisma/client';
 
 export const createUserSchema = z.object({
   name: z.string().min(2, 'الاسم يجب أن يكون حرفين على الأقل'),
-  email: z.string().email('البريد الإلكتروني غير صالح'),
+  email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
   phone: z.string().optional(),
   role: z.nativeEnum(Role).default(Role.USER),

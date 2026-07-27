@@ -46,9 +46,9 @@ export const importProductJsonSchema = z.object({
   productCode: z
     .string()
     .trim()
-    .min(2, 'كود المنتج مطلوب')
-    .regex(/^[A-Za-z0-9_-]+$/, 'كود المنتج: أحرف إنجليزية وأرقام و - _ فقط'),
-  titleAr: z.string().trim().min(1, 'عنوان المنتج مطلوب'),
+    .min(2, 'Product code is required')
+    .regex(/^[A-Za-z0-9_-]+$/, 'Product code: alphanumeric, - and _ only'),
+  titleAr: z.string().trim().min(1, 'Product title is required'),
   descriptionAr: z.string().optional().default(''),
   price: z.coerce.number().refine((value) => Number.isFinite(value), 'السعر غير صالح'),
   stock: z.coerce.number().int().refine((value) => Number.isFinite(value), 'المخزون غير صالح'),
@@ -62,16 +62,16 @@ export const importProductJsonSchema = z.object({
 });
 
 export const importProductsJsonSchema = z.object({
-  products: z.array(importProductJsonSchema).min(1, 'منتج واحد على الأقل مطلوب'),
+  products: z.array(importProductJsonSchema).min(1, 'At least one product is required'),
 });
 
 export const updateProductSchema = createProductSchema.partial().refine(
   (data) => Object.keys(data).length > 0,
-  { message: 'يجب توفير حقل واحد على الأقل للتحديث' },
+  { message: 'At least one field is required to update' },
 );
 
 export const importExcelSchema = z.object({
-  fileBase64: z.string().min(1, 'ملف Excel مطلوب'),
+  fileBase64: z.string().min(1, 'Excel file is required'),
 });
 
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;

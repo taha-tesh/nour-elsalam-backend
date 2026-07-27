@@ -8,7 +8,7 @@ export const listCategoriesQuerySchema = z.object({
 });
 
 export const createCategorySchema = z.object({
-  nameAr: z.string().min(2, 'اسم القسم مطلوب'),
+  nameAr: z.string().min(2, 'Category name is required'),
   slug: z
     .string()
     .min(2)

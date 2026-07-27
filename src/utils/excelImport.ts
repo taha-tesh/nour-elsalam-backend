@@ -94,11 +94,11 @@ export async function importProductsFromRows(rows: ImportRow[]): Promise<ImportR
 
     try {
       if (!row.productCode) {
-        throw new Error('كود المنتج مطلوب');
+        throw new Error('Product code is required');
       }
-      if (!row.titleAr) throw new Error('العنوان مطلوب');
-      if (!Number.isFinite(row.price)) throw new Error('السعر غير صالح');
-      if (!Number.isFinite(row.stock)) throw new Error('المخزون غير صالح');
+      if (!row.titleAr) throw new Error('Product title is required');
+      if (!Number.isFinite(row.price)) throw new Error('Invalid price');
+      if (!Number.isFinite(row.stock)) throw new Error('Invalid stock');
 
       const categoryId = slugMap.get(row.categorySlug);
       if (!categoryId) {
@@ -133,7 +133,7 @@ export async function importProductsFromRows(rows: ImportRow[]): Promise<ImportR
       result.errors.push({
         row: rowNum,
         productCode: row.productCode,
-        message: err instanceof Error ? err.message : 'خطأ غير معروف',
+        message: err instanceof Error ? err.message : 'Unknown error',
       });
     }
   }

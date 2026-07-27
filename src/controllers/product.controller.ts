@@ -310,7 +310,7 @@ export async function importProductsJson(req: Request, res: Response, next: Next
         result.errors.push({
           index,
           productCode: product.productCode,
-          message: err instanceof Error ? err.message : 'خطأ غير معروف',
+          message: err instanceof Error ? err.message : 'Unknown error',
         });
       }
     }
