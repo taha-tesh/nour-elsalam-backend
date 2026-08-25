@@ -4,7 +4,7 @@ import { AppError } from '../utils/errors';
 import { EXCEL_COLUMNS } from '../schemas/product.schema';
 
 export type ImportRow = {
-  productCode: string;
+  productCode: number;
   titleAr: string;
   descriptionAr: string;
   price: number;
@@ -19,7 +19,7 @@ export type ImportRow = {
 export type ImportResult = {
   created: number;
   updated: number;
-  errors: { row: number; productCode?: string; message: string }[];
+  errors: { row: number; productCode?: number | string; message: string }[];
 };
 
 function parseBool(value: unknown): boolean {
@@ -48,7 +48,7 @@ export function parseExcelBuffer(buffer: Buffer): ImportRow[] {
   const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
 
   return raw.map((row) => ({
-    productCode: String(row.productCode ?? row['كود المنتج'] ?? '').trim(),
+    productCode: Number(String(row.productCode ?? row['كود المنتج'] ?? '').trim()),
     titleAr: String(row.titleAr ?? row['العنوان'] ?? '').trim(),
     descriptionAr: String(row.descriptionAr ?? row['الوصف'] ?? '').trim(),
     price: Number(row.price ?? row['السعر'] ?? 0),
@@ -64,7 +64,7 @@ export function parseExcelBuffer(buffer: Buffer): ImportRow[] {
 export function buildTemplateBuffer(): Buffer {
   const sample = [
     {
-      productCode: 'PRD-001',
+      productCode: 1,
       titleAr: 'دريل لاسلكي 18 فولت',
       descriptionAr: 'وصف المنتج بالعربية...',
       price: 450,
@@ -93,8 +93,8 @@ export async function importProductsFromRows(rows: ImportRow[]): Promise<ImportR
     const rowNum = i + 2;
 
     try {
-      if (!row.productCode) {
-        throw new Error('Product code is required');
+      if (!Number.isInteger(row.productCode) || row.productCode <= 0) {
+        throw new Error('Product code is required and must be a positive integer');
       }
       if (!row.titleAr) throw new Error('Product title is required');
       if (!Number.isFinite(row.price)) throw new Error('Invalid price');
@@ -106,7 +106,7 @@ export async function importProductsFromRows(rows: ImportRow[]): Promise<ImportR
       }
 
       const data = {
-        productCode: row.productCode.toUpperCase(),
+        productCode: row.productCode,
         titleAr: row.titleAr,
         descriptionAr: row.descriptionAr,
         price: row.price,

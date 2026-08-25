@@ -25,10 +25,7 @@ const parseTags = (value: string[] | string | undefined): string[] => {
 };
 
 export const createProductSchema = z.object({
-  productCode: z
-    .string()
-    .trim()
-    .min(2, 'كود المنتج مطلوب'),
+  productCode: z.coerce.number().int().positive('كود المنتج يجب أن يكون رقمًا صحيحًا موجبًا'),
   titleAr: z.string().trim().min(1, 'عنوان المنتج مطلوب'),
   descriptionAr: z.string().trim().optional().default(''),
   price: z.coerce.number().refine((value) => Number.isFinite(value), 'السعر غير صالح'),
@@ -42,10 +39,7 @@ export const createProductSchema = z.object({
 });
 
 export const importProductJsonSchema = z.object({
-  productCode: z
-    .string()
-    .trim()
-    .min(2, 'Product code is required'),
+  productCode: z.coerce.number().int().positive('Product code is required'),
   titleAr: z.string().trim().min(1, 'Product title is required'),
   descriptionAr: z.string().optional().default(''),
   price: z.coerce.number().refine((value) => Number.isFinite(value), 'Invalid price'),

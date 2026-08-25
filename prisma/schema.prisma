@@ -71,8 +71,8 @@ model Category {
 
 model Product {
   id            String   @id @default(cuid())
-  /// Admin-defined product code (used in Excel import & catalog)
-  productCode   String   @unique
+  /// Admin-defined numeric product code (used in Excel import & catalog)
+  productCode   Int      @unique
   titleAr       String
   descriptionAr String   @db.Text
   price         Decimal  @db.Decimal(10, 2)

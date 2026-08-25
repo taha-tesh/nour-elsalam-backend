@@ -20,9 +20,12 @@ const productInclude = {
 };
 
 async function findProductByIdOrCode(idOrCode: string) {
+  const parsedCode = Number(idOrCode);
+  const productCode = Number.isInteger(parsedCode) && parsedCode > 0 ? parsedCode : undefined;
+
   return prisma.product.findFirst({
     where: {
-      OR: [{ id: idOrCode }, { productCode: idOrCode.toUpperCase() }],
+      OR: [{ id: idOrCode }, ...(productCode !== undefined ? [{ productCode }] : [])],
     },
     include: productInclude,
   });
@@ -37,11 +40,13 @@ export async function listProducts(req: Request, res: Response, next: NextFuncti
     const where: Prisma.ProductWhereInput = {};
 
     if (search) {
+      const trimmedSearch = search.trim();
+      const numericSearch = Number(trimmedSearch);
       where.OR = [
-        { titleAr: { contains: search, mode: 'insensitive' } },
-        { descriptionAr: { contains: search, mode: 'insensitive' } },
-        { brand: { contains: search, mode: 'insensitive' } },
-        { productCode: { contains: search, mode: 'insensitive' } },
+        { titleAr: { contains: trimmedSearch, mode: 'insensitive' } },
+        { descriptionAr: { contains: trimmedSearch, mode: 'insensitive' } },
+        { brand: { contains: trimmedSearch, mode: 'insensitive' } },
+        ...(Number.isInteger(numericSearch) && numericSearch > 0 ? [{ productCode: numericSearch }] : []),
       ];
     }
     if (categoryId) where.categoryId = categoryId;
@@ -103,7 +108,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
     }
 
     const codeTaken = await prisma.product.findUnique({
-      where: { productCode: data.productCode.toUpperCase() },
+      where: { productCode: data.productCode },
     });
     if (codeTaken) {
       throw new AppError(409, 'كود المنتج مستخدم بالفعل', 'CODE_EXISTS');
@@ -113,7 +118,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
       data: {
         ...data,
         categoryId,
-        productCode: data.productCode.toUpperCase(),
+        productCode: data.productCode,
         imageUrl: data.imageUrl || null,
       },
       include: productInclude,
@@ -138,10 +143,10 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
       throw new AppError(404, 'المنتج غير موجود', 'NOT_FOUND');
     }
 
-    if (data.productCode) {
+    if (data.productCode !== undefined) {
       const codeTaken = await prisma.product.findFirst({
         where: {
-          productCode: data.productCode.toUpperCase(),
+          productCode: data.productCode,
           id: { not: existing.id },
         },
       });
@@ -161,7 +166,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
       where: { id: existing.id },
       data: {
         ...data,
-        productCode: data.productCode?.toUpperCase(),
+        productCode: data.productCode,
         imageUrl: data.imageUrl === '' ? null : data.imageUrl,
       },
       include: productInclude,
@@ -255,7 +260,7 @@ export async function importProductsJson(req: Request, res: Response, next: Next
     const result = {
       created: 0,
       updated: 0,
-      errors: [] as { index: number; productCode: string; message: string }[],
+      errors: [] as { index: number; productCode?: number | string; message: string }[],
     };
 
     for (let i = 0; i < products.length; i++) {
@@ -274,7 +279,7 @@ export async function importProductsJson(req: Request, res: Response, next: Next
         }
 
         const productData = {
-          productCode: product.productCode.toUpperCase(),
+          productCode: product.productCode,
           titleAr: product.titleAr,
           descriptionAr: product.descriptionAr || '',
           price: product.price,
