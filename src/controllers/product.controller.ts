@@ -41,13 +41,15 @@ export async function listProducts(req: Request, res: Response, next: NextFuncti
 
     if (search) {
       const trimmedSearch = search.trim();
-      const numericSearch = Number(trimmedSearch);
-      where.OR = [
-        { titleAr: { contains: trimmedSearch, mode: 'insensitive' } },
-        { descriptionAr: { contains: trimmedSearch, mode: 'insensitive' } },
-        { brand: { contains: trimmedSearch, mode: 'insensitive' } },
-        ...(Number.isInteger(numericSearch) && numericSearch > 0 ? [{ productCode: numericSearch }] : []),
-      ];
+      if (trimmedSearch.length >= 2) {
+        const numericSearch = Number(trimmedSearch);
+        where.OR = [
+          { titleAr: { contains: trimmedSearch, mode: 'insensitive' } },
+          { descriptionAr: { contains: trimmedSearch, mode: 'insensitive' } },
+          { brand: { contains: trimmedSearch, mode: 'insensitive' } },
+          ...(Number.isInteger(numericSearch) && numericSearch > 0 ? [{ productCode: numericSearch }] : []),
+        ];
+      }
     }
     if (categoryId) where.categoryId = categoryId;
     if (isFeatured !== undefined) where.isFeatured = isFeatured;
