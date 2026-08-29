@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { env } from './config/env';
 import { prisma } from './lib/prisma';
 import { isAppError } from './utils/errors';
+import { startWeeklyUserReminderScheduler } from './utils/pushNotifications';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import categoryRoutes from './routes/category.routes';
@@ -68,6 +69,7 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 app.listen(env.PORT, () => {
   console.log(`🚀 بيت العدد API running on http://localhost:${env.PORT}`);
   console.log(`   Environment: ${env.NODE_ENV}`);
+  startWeeklyUserReminderScheduler();
 });
 
 export default app;

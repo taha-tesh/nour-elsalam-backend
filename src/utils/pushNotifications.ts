@@ -61,3 +61,37 @@ export async function notifyAdminsNewOrder(order: {
     data: { orderId: order.id, type: 'NEW_ORDER' },
   });
 }
+
+export async function notifyUsersWeeklyReminder(): Promise<void> {
+  const users = await prisma.user.findMany({
+    where: {
+      role: 'USER',
+      isActive: true,
+      expoPushToken: { not: null },
+    },
+    select: { expoPushToken: true },
+  });
+
+  const tokens = users
+    .map((user) => user.expoPushToken)
+    .filter((token): token is string => Boolean(token));
+
+  await sendExpoPushNotifications(tokens, {
+    title: 'تصفح أحدث المنتجات',
+    body: 'تأكد من مراجعة التطبيق اليوم واستكشف المنتجات الجديدة والعروض الأسبوعية.',
+    data: { type: 'WEEKLY_REMINDER' },
+  });
+}
+
+export function startWeeklyUserReminderScheduler(): void {
+  const intervalMs = 7 * 24 * 60 * 60 * 1000;
+
+  const runReminder = () => {
+    void notifyUsersWeeklyReminder().catch((err) => {
+      console.error('Failed to send weekly reminder:', err);
+    });
+  };
+
+  setInterval(runReminder, intervalMs);
+  console.log('Weekly user reminder scheduler started.');
+}
