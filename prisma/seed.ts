@@ -124,7 +124,7 @@ async function seedProducts(categoryIds: Record<string, string>) {
     const categoryId = categoryIds[categorySlug];
     if (!categoryId) continue;
 
-    const productCode = `PRD-${String(i + 1).padStart(3, '0')}`;
+    const productCode = i + 1;
 
     await prisma.product.upsert({
       where: { productCode },

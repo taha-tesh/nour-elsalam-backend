@@ -54,17 +54,6 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
 
     const productMap = new Map(products.map((p) => [p.id, p]));
 
-    for (const item of data.items) {
-      const product = productMap.get(item.productId)!;
-      if (product.stock < item.quantity) {
-        throw new AppError(
-          400,
-          `Requested quantity of "${product.titleAr}" is not available (remaining: ${product.stock})`,
-          'INSUFFICIENT_STOCK',
-        );
-      }
-    }
-
     const totalAmount = data.items.reduce((sum, item) => {
       const product = productMap.get(item.productId)!;
       return sum + Number(product.price) * item.quantity;
@@ -73,13 +62,6 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
     const orderNumber = await generateOrderNumber();
 
     const order = await prisma.$transaction(async (tx) => {
-      for (const item of data.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } },
-        });
-      }
-
       return tx.order.create({
         data: {
           orderNumber,
